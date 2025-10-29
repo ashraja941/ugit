@@ -19,3 +19,10 @@ def hash_object(data: bytes):
     with open(out_file_location, "wb") as out:
         _ = out.write(data)
     return oid
+
+
+def get_object(object) -> bytes:
+    object_location: str = os.path.join(GIT_DIR, "objects", object)
+
+    with open(object_location, "rb") as f:
+        return f.read()
