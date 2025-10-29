@@ -8,7 +8,7 @@ def init():
     os.makedirs(GIT_DIR)
 
 
-def hash_object(data: bytes, type_: str = "blob"):
+def hash_object(data: bytes, type_: str = "blob") -> str:
     obj = type_.encode() + b"\x00" + data
     oid = hashlib.sha1(obj).hexdigest()
 
