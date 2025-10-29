@@ -58,4 +58,4 @@ def cat_file(args) -> None:
     Returns: None
     """
     _ = sys.stdout.flush()
-    sys.stdout.buffer.write(data.get_object(args.object))
+    sys.stdout.buffer.write(data.get_object(args.object, expected=None))

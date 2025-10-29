@@ -8,8 +8,9 @@ def init():
     os.makedirs(GIT_DIR)
 
 
-def hash_object(data: bytes):
-    oid = hashlib.sha1(data).hexdigest()
+def hash_object(data: bytes, type_: str = "blob"):
+    obj = type_.encode() + b"\x00" + data
+    oid = hashlib.sha1(obj).hexdigest()
 
     # handle using correct slashes in all os
     out_file_location: str = os.path.join(GIT_DIR, "objects", oid)
@@ -17,12 +18,19 @@ def hash_object(data: bytes):
     # Create a objects folder if it doesn't exist
     os.makedirs(os.path.dirname(out_file_location), exist_ok=True)
     with open(out_file_location, "wb") as out:
-        _ = out.write(data)
+        _ = out.write(obj)
     return oid
 
 
-def get_object(object) -> bytes:
+def get_object(object, expected: str | None = "blob") -> bytes:
     object_location: str = os.path.join(GIT_DIR, "objects", object)
 
     with open(object_location, "rb") as f:
-        return f.read()
+        obj = f.read()
+
+    type_, _, content = obj.partition(b"\x00")
+    type_ = type_.decode()
+
+    if expected is not None:
+        assert type_ == expected, f"Expected {expected}, got {type_}"
+    return content
