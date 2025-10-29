@@ -31,11 +31,21 @@ def parse_args():
 
 
 def init(args) -> None:
+    """
+    Initialize the ugit repository
+    Args: None
+    Returns: None
+    """
     data.init()
     print(f"Initialized empty ugit repository in {os.getcwd()}/{data.GIT_DIR}")
 
 
 def hash_object(args) -> None:
+    """
+    Create hashed object
+    Args: file location
+    Returns: Object Id
+    """
     with open(args.file, "rb") as f:
         print(data.hash_object(f.read()))
 
