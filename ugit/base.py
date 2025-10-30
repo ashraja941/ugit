@@ -14,7 +14,13 @@ class Commit(NamedTuple):
 
 
 def create_tag(name: str, oid: str) -> None:
-    raise NotImplementedError
+    """
+    Create a tag for a OID
+
+    Args: Name (str), OID (str)
+    Returns: None
+    """
+    data.update_ref(f"ref/tags/{name}", oid)
 
 
 def checkout(oid: str) -> None:

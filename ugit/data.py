@@ -55,23 +55,25 @@ def get_object(object: str, expected: str | None = "blob") -> bytes:
 
 def update_ref(ref: str, oid: str) -> None:
     """
-    Set HEAD to the OID
+    Set REF to the OID
 
     Args: OID (str)
     Returns: None
     """
-    with open(os.path.join(GIT_DIR, ref), "w") as f:
+    ref_location: str = os.path.join(GIT_DIR, ref)
+    os.makedirs(os.path.dirname(ref_location), exist_ok=True)
+    with open(ref_location, "w") as f:
         _ = f.write(oid)
 
 
 def get_ref(ref: str) -> str | None:
     """
-    Retreive the HEAD
+    Retreive the REF
 
     Args: None
     Returns: None
     """
-    HEAD_path: str = os.path.join(GIT_DIR, ref)
-    if os.path.isfile(HEAD_path):
-        with open(HEAD_path, "r") as f:
+    ref_path: str = os.path.join(GIT_DIR, ref)
+    if os.path.isfile(ref_path):
+        with open(ref_path, "r") as f:
             return f.read().strip()
