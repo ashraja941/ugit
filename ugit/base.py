@@ -26,7 +26,7 @@ def checkout(oid: str) -> None:
     """
     commit = get_commit(oid)
     read_tree(commit.tree)
-    data.set_HEAD(oid)
+    data.update_ref("HEAD", oid)
 
 
 def commit(message: str) -> str:
@@ -42,14 +42,14 @@ def commit(message: str) -> str:
     """
 
     commitObject: str = f"tree {write_tree()}\n"
-    HEAD: str | None = data.get_HEAD()
+    HEAD: str | None = data.get_ref("HEAD")
     if HEAD:
         commitObject += f"parent {HEAD}\n"
     commitObject += "\n"
     commitObject += f"{message}\n"
 
     oid: str = data.hash_object(commitObject.encode(), "commit")
-    data.set_HEAD(oid)
+    data.update_ref("HEAD", oid)
 
     _ = stdout.flush()
     _ = stdout.write(commitObject)

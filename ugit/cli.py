@@ -134,7 +134,7 @@ def log(args: argparse.Namespace) -> None:
     Args: Object ID
     Returns: None
     """
-    oid = args.oid or data.get_HEAD()
+    oid = args.oid or data.get_ref("HEAD")
     while oid:
         commit = base.get_commit(oid)
 
@@ -163,5 +163,5 @@ def tag(args: argparse.Namespace) -> None:
     Args: Name (str), <Optional> OID (str)
     Returns: None
     """
-    oid: str = str(args.oid) or data.get_HEAD()
+    oid: str = str(args.oid) or data.get_ref("HEAD")
     base.create_tag(args.name, oid)
