@@ -119,7 +119,6 @@ def commit(args: argparse.Namespace) -> None:
 
 
 def log(args: argparse.Namespace) -> None:
-    print(type(args))
     """
     Pass in Object ID and get commit history
 
