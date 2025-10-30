@@ -48,34 +48,36 @@ def parse_args():
 
     log_parser = commands.add_parser("log")
     log_parser.set_defaults(func=log)
-    log_parser.add_argument("oid", nargs="?")
+    _ = log_parser.add_argument("oid", nargs="?")
 
     return parser.parse_args()
 
 
-def init(args) -> None:
+def init(args: argparse.Namespace) -> None:
     """
     Initialize the ugit repository
 
     Args: None
     Returns: None
     """
+    _ = args
     data.init()
     print(f"Initialized empty ugit repository in {os.getcwd()}/{data.GIT_DIR}")
 
 
-def hash_object(args) -> None:
+def hash_object(args: argparse.Namespace) -> None:
     """
     Create hashed object
 
     Args: file location
     Returns: Object Id
     """
+    _ = args
     with open(args.file, "rb") as f:
         print(data.hash_object(f.read()))
 
 
-def cat_file(args) -> None:
+def cat_file(args: argparse.Namespace) -> None:
     """
     display the file.
 
@@ -86,7 +88,7 @@ def cat_file(args) -> None:
     _ = sys.stdout.buffer.write(data.get_object(args.object, expected=None))
 
 
-def write_tree(args) -> None:
+def write_tree(args: argparse.Namespace) -> None:
     """
     Hash all objects and trees from the current directory
 
@@ -96,7 +98,7 @@ def write_tree(args) -> None:
     print(base.write_tree())
 
 
-def read_tree(args) -> None:
+def read_tree(args: argparse.Namespace) -> None:
     """
     Pass in the tree object ID and recursively go through all folders and replace files with the one from the tree hash passed before
 
@@ -106,7 +108,7 @@ def read_tree(args) -> None:
     base.read_tree(args.tree)
 
 
-def commit(args) -> None:
+def commit(args: argparse.Namespace) -> None:
     """
     Create a commit with a message
 
@@ -116,7 +118,8 @@ def commit(args) -> None:
     base.commit(args.message)
 
 
-def log(args) -> None:
+def log(args: argparse.Namespace) -> None:
+    print(type(args))
     """
     Pass in Object ID and get commit history
 
