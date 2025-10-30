@@ -28,6 +28,10 @@ def parse_args():
     cat_file_parser.set_defaults(func=cat_file)
     cat_file_parser.add_argument("object")
 
+    read_tree_parser = commands.add_parser("read-tree")
+    read_tree_parser.set_defaults(func=read_tree)
+    read_tree_parser.add_argument("tree")
+
     init_parser = commands.add_parser("write-tree")
     init_parser.set_defaults(func=write_tree)
 
@@ -67,3 +71,7 @@ def cat_file(args) -> None:
 
 def write_tree(args) -> None:
     print(base.write_tree())
+
+
+def read_tree(args) -> None:
+    base.read_tree(args.tree)
