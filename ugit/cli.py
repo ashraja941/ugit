@@ -8,11 +8,17 @@ from . import base
 
 
 def main() -> None:
+    """
+    This is the function that is called by the cli tool
+    """
     args = parse_args()
     args.func(args)
 
 
 def parse_args():
+    """
+    Helper function to parse argument
+    """
     parser = argparse.ArgumentParser()
 
     commands = parser.add_subparsers(dest="command")
@@ -23,22 +29,22 @@ def parse_args():
 
     hash_object_parser = commands.add_parser("hash-object")
     hash_object_parser.set_defaults(func=hash_object)
-    hash_object_parser.add_argument("file")
+    _ = hash_object_parser.add_argument("file")
 
     cat_file_parser = commands.add_parser("cat-file")
     cat_file_parser.set_defaults(func=cat_file)
-    cat_file_parser.add_argument("object")
+    _ = cat_file_parser.add_argument("object")
 
     read_tree_parser = commands.add_parser("read-tree")
     read_tree_parser.set_defaults(func=read_tree)
-    read_tree_parser.add_argument("tree")
+    _ = read_tree_parser.add_argument("tree")
 
     write_tree_parser = commands.add_parser("write-tree")
     write_tree_parser.set_defaults(func=write_tree)
 
     commit_parser = commands.add_parser("commit")
     commit_parser.set_defaults(func=commit)
-    commit_parser.add_argument("-m", "--message", required=True)
+    _ = commit_parser.add_argument("-m", "--message", required=True)
 
     log_parser = commands.add_parser("log")
     log_parser.set_defaults(func=log)
@@ -50,6 +56,7 @@ def parse_args():
 def init(args) -> None:
     """
     Initialize the ugit repository
+
     Args: None
     Returns: None
     """
@@ -60,6 +67,7 @@ def init(args) -> None:
 def hash_object(args) -> None:
     """
     Create hashed object
+
     Args: file location
     Returns: Object Id
     """
@@ -75,22 +83,46 @@ def cat_file(args) -> None:
     Returns: None
     """
     _ = sys.stdout.flush()
-    sys.stdout.buffer.write(data.get_object(args.object, expected=None))
+    _ = sys.stdout.buffer.write(data.get_object(args.object, expected=None))
 
 
 def write_tree(args) -> None:
+    """
+    Hash all objects and trees from the current directory
+
+    Args: None
+    Returns: None
+    """
     print(base.write_tree())
 
 
 def read_tree(args) -> None:
+    """
+    Pass in the tree object ID and recursively go through all folders and replace files with the one from the tree hash passed before
+
+    Args: Tree Object ID
+    Returns: None
+    """
     base.read_tree(args.tree)
 
 
 def commit(args) -> None:
+    """
+    Create a commit with a message
+
+    Args: Commit Message
+    Returns: None
+    """
     base.commit(args.message)
 
 
 def log(args) -> None:
+    """
+    Pass in Object ID and get commit history
+
+    Args: Object ID
+    Returns: None
+    """
     oid = args.oid or data.get_HEAD()
     while oid:
         commit = base.get_commit(oid)
