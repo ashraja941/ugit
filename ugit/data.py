@@ -34,3 +34,15 @@ def get_object(object: str, expected: str | None = "blob") -> bytes:
     if expected is not None:
         assert type_ == expected, f"Expected {expected}, got {type_}"
     return content
+
+
+def set_HEAD(oid: str) -> None:
+    with open(os.path.join(GIT_DIR, "HEAD"), "w") as f:
+        _ = f.write(oid)
+
+
+def get_HEAD() -> str | None:
+    HEAD_path: str = os.path.join(GIT_DIR, "HEAD")
+    if os.path.isfile(HEAD_path):
+        with open(HEAD_path, "r") as f:
+            return f.read().strip()

@@ -1,13 +1,23 @@
 import os
+from sys import stdout
 
 from . import data
 
 
 def commit(message: str):
     commitObject = f"tree {write_tree()}\n"
+    HEAD: str | None = data.get_HEAD()
+    if HEAD:
+        commitObject += f"parent {HEAD}\n"
     commitObject += "\n"
     commitObject += f"{message}\n"
-    return data.hash_object(commitObject.encode(), "commit")
+
+    oid = data.hash_object(commitObject.encode(), "commit")
+    data.set_HEAD(oid)
+
+    _ = stdout.flush()
+    _ = stdout.write(commitObject)
+    return oid
 
 
 def write_tree(directory: str = ".") -> str:
