@@ -22,7 +22,7 @@ def hash_object(data: bytes, type_: str = "blob") -> str:
     return oid
 
 
-def get_object(object, expected: str | None = "blob") -> bytes:
+def get_object(object: str, expected: str | None = "blob") -> bytes:
     object_location: str = os.path.join(GIT_DIR, "objects", object)
 
     with open(object_location, "rb") as f:
