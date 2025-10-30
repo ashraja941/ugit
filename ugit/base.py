@@ -3,6 +3,13 @@ import os
 from . import data
 
 
+def commit(message: str):
+    commitObject = f"tree {write_tree()}\n"
+    commitObject += "\n"
+    commitObject += f"{message}\n"
+    return data.hash_object(commitObject.encode(), "commit")
+
+
 def write_tree(directory: str = ".") -> str:
     entries: list[tuple[str, str, str]] = []
     with os.scandir(directory) as it:
