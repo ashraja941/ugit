@@ -13,11 +13,27 @@ class Commit(NamedTuple):
     message: str
 
 
+def create_tag(name: str, oid: str) -> None:
+    raise NotImplementedError
+
+
+def checkout(oid: str) -> None:
+    """
+    Switch repository state to state at COMMIT OID
+
+    Args: OID (str)
+    Returns: None
+    """
+    commit = get_commit(oid)
+    read_tree(commit.tree)
+    data.set_HEAD(oid)
+
+
 def commit(message: str) -> str:
     """
     create a commit Object with the following information
         Tree TreeOID
-        Parent ParentOID (Optional)
+         Parent ParentOID <Optional>
         \\n
         message
 

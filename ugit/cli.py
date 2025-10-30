@@ -50,6 +50,15 @@ def parse_args():
     log_parser.set_defaults(func=log)
     _ = log_parser.add_argument("oid", nargs="?")
 
+    checkout_parser = commands.add_parser("checkout")
+    checkout_parser.set_defaults(func=checkout)
+    _ = checkout_parser.add_argument("oid")
+
+    tag_parser = commands.add_parser("tag")
+    tag_parser.set_defaults(func=tag)
+    _ = tag_parser.add_argument("name")
+    _ = tag_parser.add_argument("oid", nargs="?")
+
     return parser.parse_args()
 
 
@@ -134,3 +143,25 @@ def log(args: argparse.Namespace) -> None:
         print("")
 
         oid = commit.parent
+
+
+def checkout(args: argparse.Namespace) -> None:
+    """
+    Takes in a COMMIT OID and returns the state to said Commit
+
+    Args: COMMIT OID (str)
+    Returns: None
+    """
+
+    base.checkout(args.oid)
+
+
+def tag(args: argparse.Namespace) -> None:
+    """
+    Link a Name to a commit for easy moving around
+
+    Args: Name (str), <Optional> OID (str)
+    Returns: None
+    """
+    oid: str = str(args.oid) or data.get_HEAD()
+    base.create_tag(args.name, oid)
