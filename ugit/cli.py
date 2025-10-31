@@ -50,7 +50,7 @@ def parse_args():
 
     log_parser = commands.add_parser("log")
     log_parser.set_defaults(func=log)
-    _ = log_parser.add_argument("oid", type=oid, nargs="?")
+    _ = log_parser.add_argument("oid", default="@", type=oid, nargs="?")
 
     checkout_parser = commands.add_parser("checkout")
     checkout_parser.set_defaults(func=checkout)
@@ -59,7 +59,7 @@ def parse_args():
     tag_parser = commands.add_parser("tag")
     tag_parser.set_defaults(func=tag)
     _ = tag_parser.add_argument("name")
-    _ = tag_parser.add_argument("oid", type=oid, nargs="?")
+    _ = tag_parser.add_argument("oid", default="@", type=oid, nargs="?")
 
     return parser.parse_args()
 
@@ -165,9 +165,5 @@ def tag(args: argparse.Namespace) -> None:
     Args: Name (str), <Optional> OID (str)
     Returns: None
     """
-    oid: str | None = args.oid or data.get_ref("HEAD")
-    if oid is not None:
-        print("Tag created for ", oid)
-        base.create_tag(args.name, oid)
-    else:
-        print("TAG ERROR")
+    print("Tag created for ", args.oid)
+    base.create_tag(name=args.name, oid=args.oid)

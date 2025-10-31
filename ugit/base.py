@@ -204,6 +204,9 @@ def get_oid(name: str) -> str:
     Args: name (str)
     Returns: OID (str)
     """
+    if name == "@":
+        name = "HEAD"
+
     refs_to_try = [
         os.path.join(name),
         os.path.join("refs", name),
