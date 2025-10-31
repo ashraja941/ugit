@@ -61,6 +61,9 @@ def parse_args():
     _ = tag_parser.add_argument("name")
     _ = tag_parser.add_argument("oid", default="@", type=oid, nargs="?")
 
+    k_parser = commands.add_parser("k")
+    k_parser.set_defaults(func=k)
+
     return parser.parse_args()
 
 
@@ -167,3 +170,8 @@ def tag(args: argparse.Namespace) -> None:
     """
     print("Tag created for ", args.oid)
     base.create_tag(name=args.name, oid=args.oid)
+
+
+def k(args: argparse.Namespace) -> None:
+    for ref_name, ref_oid in data.iter_refs():
+        print(ref_name, ref_oid)
