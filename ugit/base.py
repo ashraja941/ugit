@@ -1,4 +1,5 @@
 import itertools
+import string
 import operator
 import os
 from sys import stdout
@@ -20,7 +21,8 @@ def create_tag(name: str, oid: str) -> None:
     Args: Name (str), OID (str)
     Returns: None
     """
-    data.update_ref(f"ref/tags/{name}", oid)
+    ref_location: str = os.path.join("refs", "tags", name)
+    data.update_ref(ref_location, oid)
 
 
 def checkout(oid: str) -> None:
@@ -193,6 +195,33 @@ def get_commit(oid: str):
 
     message = "\n".join(lines)
     return Commit(tree=tree, parent=parent, message=message)
+
+
+def get_oid(name: str) -> str:
+    """
+    return the oid with the tag / name
+
+    Args: name (str)
+    Returns: OID (str)
+    """
+    refs_to_try = [
+        os.path.join(name),
+        os.path.join("refs", name),
+        os.path.join("refs", "tags", name),
+        os.path.join("refs", "heads", name),
+    ]
+
+    for ref in refs_to_try:
+        if data.get_ref(ref) is not None:
+            result: str = data.get_ref(ref)
+            return result
+
+    is_hex = all(c in string.hexdigits for c in name)
+    if len(name) == 40 and is_hex:
+        return name
+
+    print("already oid")
+    assert False, f"Unknown name {name}"
 
 
 def is_ignored(path: str) -> bool:

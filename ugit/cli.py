@@ -21,6 +21,8 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
 
+    oid = base.get_oid
+
     commands = parser.add_subparsers(dest="command")
     commands.required = True
 
@@ -33,11 +35,11 @@ def parse_args():
 
     cat_file_parser = commands.add_parser("cat-file")
     cat_file_parser.set_defaults(func=cat_file)
-    _ = cat_file_parser.add_argument("object")
+    _ = cat_file_parser.add_argument("object", type=oid)
 
     read_tree_parser = commands.add_parser("read-tree")
     read_tree_parser.set_defaults(func=read_tree)
-    _ = read_tree_parser.add_argument("tree")
+    _ = read_tree_parser.add_argument("tree", type=oid)
 
     write_tree_parser = commands.add_parser("write-tree")
     write_tree_parser.set_defaults(func=write_tree)
@@ -48,16 +50,16 @@ def parse_args():
 
     log_parser = commands.add_parser("log")
     log_parser.set_defaults(func=log)
-    _ = log_parser.add_argument("oid", nargs="?")
+    _ = log_parser.add_argument("oid", type=oid, nargs="?")
 
     checkout_parser = commands.add_parser("checkout")
     checkout_parser.set_defaults(func=checkout)
-    _ = checkout_parser.add_argument("oid")
+    _ = checkout_parser.add_argument("oid", type=oid)
 
     tag_parser = commands.add_parser("tag")
     tag_parser.set_defaults(func=tag)
     _ = tag_parser.add_argument("name")
-    _ = tag_parser.add_argument("oid", nargs="?")
+    _ = tag_parser.add_argument("oid", type=oid, nargs="?")
 
     return parser.parse_args()
 
@@ -163,5 +165,9 @@ def tag(args: argparse.Namespace) -> None:
     Args: Name (str), <Optional> OID (str)
     Returns: None
     """
-    oid: str = str(args.oid) or data.get_ref("HEAD")
-    base.create_tag(args.name, oid)
+    oid: str | None = args.oid or data.get_ref("HEAD")
+    if oid is not None:
+        print("Tag created for ", oid)
+        base.create_tag(args.name, oid)
+    else:
+        print("TAG ERROR")
