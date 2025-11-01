@@ -239,3 +239,17 @@ def is_ignored(path: str) -> bool:
     for delimiter in ["/", "\\"]:
         path = path.replace(delimiter, " ")
     return ".ugit" in path.split(" ")
+
+
+def iter_commits_and_parents(oids_list: set[str]):
+    oids: set[str | None] = set(oids_list)
+    visited: set[str] = set()
+    while oids:
+        oid = oids.pop()
+        if not oid or oid in visited:
+            continue
+        visited.add(oid)
+        yield oid
+
+        parent = get_commit(oid)
+        oids.add(parent.parent)

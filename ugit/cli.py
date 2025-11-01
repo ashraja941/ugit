@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 import os
 import sys
 import textwrap
@@ -173,5 +174,36 @@ def tag(args: argparse.Namespace) -> None:
 
 
 def k(args: argparse.Namespace) -> None:
+    dot = "digraph commits {\n"
+    oids: set[str] = set()
     for ref_name, ref_oid in data.iter_refs():
-        print(ref_name, ref_oid)
+        # print(ref_name, ref_oid)
+        dot += f'"{ref_name}" [shape=note]\n'
+        dot += f'"{ref_name}" -> "{ref_oid}"\n'
+        if ref_oid:
+            oids.add(ref_oid)
+
+    for oid in base.iter_commits_and_parents(oids):
+        commit = base.get_commit(oid)
+        # print(oid)
+        dot += f'"{oid}" [shape=box style=filled label="{oid[:10]}"]\n'
+        if commit.parent:
+            dot += f'"{oid}" -> "{commit.parent}"\n'
+
+    dot += "}"
+    print(dot)
+    proc = subprocess.Popen(
+        ["dot", "-Tpng"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    out, err = proc.communicate(dot.encode())
+
+    if err:
+        print("Graphviz error:", err.decode())
+    # Save to file
+    out_file = "ugit_graph.png"
+    with open(out_file, "wb") as f:
+        f.write(out)
+    # print(out.decode())
