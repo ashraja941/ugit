@@ -205,5 +205,5 @@ def k(args: argparse.Namespace) -> None:
     # Save to file
     out_file = "ugit_graph.png"
     with open(out_file, "wb") as f:
-        f.write(out)
+        _ = f.write(out)
     # print(out.decode())
