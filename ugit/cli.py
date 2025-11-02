@@ -65,6 +65,11 @@ def parse_args():
     k_parser = commands.add_parser("k")
     k_parser.set_defaults(func=k)
 
+    branch_parser = commands.add_parser("branch")
+    branch_parser.set_defaults(func=branch)
+    _ = branch_parser.add_argument("name")
+    _ = branch_parser.add_argument("starting_point", default="@", type=oid, nargs="?")
+
     return parser.parse_args()
 
 
@@ -205,3 +210,8 @@ def k(args: argparse.Namespace) -> None:
     with open(out_file, "wb") as f:
         _ = f.write(out)
     # print(out.decode())
+
+
+def branch(args: argparse.Namespace) -> None:
+    base.create_branch(args.name, args.starting_point)
+    print(f"Branch {args.name} created at {args.start_point[:10]}...")

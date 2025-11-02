@@ -15,6 +15,17 @@ class Commit(NamedTuple):
     message: str
 
 
+def create_branch(name: str, oid: str) -> None:
+    """
+    Create a new branch
+
+    Args: Name (str), starting OID (str)
+    Returns: None
+    """
+    ref_location: str = os.path.join("refs", "heads", name)
+    data.update_ref(ref_location, oid)
+
+
 def create_tag(name: str, oid: str) -> None:
     """
     Create a tag for a OID
