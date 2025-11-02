@@ -74,9 +74,14 @@ def get_ref(ref: str) -> str | None:
     Returns: None
     """
     ref_path: str = os.path.join(GIT_DIR, ref)
+    value: str | None = None
     if os.path.isfile(ref_path):
         with open(ref_path, "r") as f:
-            return f.read().strip()
+            value = f.read().strip()
+
+    if value and value.startswith("ref:"):
+        return get_ref(value.split(":", 1)[1].strip())
+    return value
 
 
 def iter_refs():
