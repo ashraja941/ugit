@@ -140,15 +140,13 @@ def log(args: argparse.Namespace) -> None:
     Args: Object ID
     Returns: None
     """
-    oid = args.oid or data.get_ref("HEAD")
-    while oid:
+    oids = args.oid or data.get_ref("HEAD")
+    for oid in base.iter_commits_and_parents({oids}):
         commit = base.get_commit(oid)
 
         print(f"commit {oid}\n")
         print(textwrap.indent(commit.message, "     "))
         print("")
-
-        oid = commit.parent
 
 
 def checkout(args: argparse.Namespace) -> None:
