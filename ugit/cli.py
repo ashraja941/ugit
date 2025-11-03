@@ -182,9 +182,9 @@ def k(args: argparse.Namespace) -> None:
     for ref_name, ref_oid in data.iter_refs():
         # print(ref_name, ref_oid)
         dot += f'"{ref_name}" [shape=note]\n'
-        dot += f'"{ref_name}" -> "{ref_oid}"\n'
-        if ref_oid:
-            oids.add(ref_oid)
+        dot += f'"{ref_name}" -> "{ref_oid.value}"\n'
+        if ref_oid.value:
+            oids.add(ref_oid.value)
 
     for oid in base.iter_commits_and_parents(oids):
         commit = base.get_commit(oid)

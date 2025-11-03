@@ -1,7 +1,14 @@
 import os
 import hashlib
+from typing import NamedTuple
+
 
 GIT_DIR = ".ugit"
+
+
+class RefValue(NamedTuple):
+    symbolic: bool
+    value: str | None
 
 
 def init() -> None:
@@ -53,20 +60,23 @@ def get_object(object: str, expected: str | None = "blob") -> bytes:
     return content
 
 
-def update_ref(ref: str, oid: str) -> None:
+def update_ref(ref: str, value: RefValue) -> None:
     """
     Set REF to the OID
 
     Args: OID (str)
     Returns: None
     """
+    assert not value.symbolic
+
     ref_location: str = os.path.join(GIT_DIR, ref)
     os.makedirs(os.path.dirname(ref_location), exist_ok=True)
     with open(ref_location, "w") as f:
-        _ = f.write(oid)
+        if value.value is not None:
+            _ = f.write(value.value)
 
 
-def get_ref(ref: str) -> str | None:
+def get_ref(ref: str) -> RefValue:
     """
     Retreive the REF
 
@@ -81,7 +91,7 @@ def get_ref(ref: str) -> str | None:
 
     if value and value.startswith("ref:"):
         return get_ref(value.split(":", 1)[1].strip())
-    return value
+    return RefValue(symbolic=False, value=value)
 
 
 def iter_refs():

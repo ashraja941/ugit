@@ -23,7 +23,7 @@ def create_branch(name: str, oid: str) -> None:
     Returns: None
     """
     ref_location: str = os.path.join("refs", "heads", name)
-    data.update_ref(ref_location, oid)
+    data.update_ref(ref_location, data.RefValue(symbolic=False, value=oid))
 
 
 def create_tag(name: str, oid: str) -> None:
@@ -34,7 +34,7 @@ def create_tag(name: str, oid: str) -> None:
     Returns: None
     """
     ref_location: str = os.path.join("refs", "tags", name)
-    data.update_ref(ref_location, oid)
+    data.update_ref(ref_location, data.RefValue(symbolic=False, value=oid))
 
 
 def checkout(oid: str) -> None:
@@ -46,7 +46,7 @@ def checkout(oid: str) -> None:
     """
     commit = get_commit(oid)
     read_tree(commit.tree)
-    data.update_ref("HEAD", oid)
+    data.update_ref("HEAD", data.RefValue(symbolic=False, value=oid))
 
 
 def commit(message: str) -> str:
@@ -62,14 +62,14 @@ def commit(message: str) -> str:
     """
 
     commitObject: str = f"tree {write_tree()}\n"
-    HEAD: str | None = data.get_ref("HEAD")
+    HEAD: str | None = data.get_ref("HEAD").value
     if HEAD:
         commitObject += f"parent {HEAD}\n"
     commitObject += "\n"
     commitObject += f"{message}\n"
 
     oid: str = data.hash_object(commitObject.encode(), "commit")
-    data.update_ref("HEAD", oid)
+    data.update_ref("HEAD", data.RefValue(symbolic=False, value=oid))
 
     _ = stdout.flush()
     _ = stdout.write(commitObject)
@@ -227,8 +227,8 @@ def get_oid(name: str) -> str:
     ]
 
     for ref in refs_to_try:
-        if data.get_ref(ref) is not None:
-            result: str = data.get_ref(ref)
+        result: str | None = data.get_ref(ref).value
+        if result is not None:
             return result
 
     is_hex = all(c in string.hexdigits for c in name)
