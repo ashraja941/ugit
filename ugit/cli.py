@@ -176,14 +176,19 @@ def tag(args: argparse.Namespace) -> None:
     base.create_tag(name=args.name, oid=args.oid)
 
 
+def branch(args: argparse.Namespace) -> None:
+    base.create_branch(args.name, args.starting_point)
+    print(f"Branch {args.name} created at {args.start_point[:10]}...")
+
+
 def k(args: argparse.Namespace) -> None:
     dot = "digraph commits {\n"
     oids: set[str] = set()
-    for ref_name, ref_oid in data.iter_refs():
+    for ref_name, ref_oid in data.iter_refs(deref=False):
         # print(ref_name, ref_oid)
         dot += f'"{ref_name}" [shape=note]\n'
         dot += f'"{ref_name}" -> "{ref_oid.value}"\n'
-        if ref_oid.value:
+        if not ref_oid.symbolic and ref_oid.value is not None:
             oids.add(ref_oid.value)
 
     for oid in base.iter_commits_and_parents(oids):
@@ -210,8 +215,3 @@ def k(args: argparse.Namespace) -> None:
     with open(out_file, "wb") as f:
         _ = f.write(out)
     # print(out.decode())
-
-
-def branch(args: argparse.Namespace) -> None:
-    base.create_branch(args.name, args.starting_point)
-    print(f"Branch {args.name} created at {args.start_point[:10]}...")

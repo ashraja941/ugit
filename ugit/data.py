@@ -60,7 +60,7 @@ def get_object(object: str, expected: str | None = "blob") -> bytes:
     return content
 
 
-def update_ref(ref: str, value: RefValue) -> None:
+def update_ref(ref: str, value: RefValue, deref: bool = True) -> None:
     """
     Set REF to the OID
 
@@ -69,7 +69,7 @@ def update_ref(ref: str, value: RefValue) -> None:
     """
     assert not value.symbolic
 
-    ref = _get_ref_internal(ref)[0]
+    ref = _get_ref_internal(ref, deref)[0]
     ref_location: str = os.path.join(GIT_DIR, ref)
     os.makedirs(os.path.dirname(ref_location), exist_ok=True)
     with open(ref_location, "w") as f:
@@ -77,17 +77,17 @@ def update_ref(ref: str, value: RefValue) -> None:
             _ = f.write(value.value)
 
 
-def get_ref(ref: str) -> RefValue:
+def get_ref(ref: str, deref: bool = True) -> RefValue:
     """
     Retreive the REF and whether its symbolic
 
     Args: None
     Returns: RefValue
     """
-    return _get_ref_internal(ref)[1]
+    return _get_ref_internal(ref, deref=deref)[1]
 
 
-def _get_ref_internal(ref: str) -> tuple[str, RefValue]:
+def _get_ref_internal(ref: str, deref: bool) -> tuple[str, RefValue]:
     """
     Internal function to dereference symbolic references
     returns the final symbolic ref along with it's OID
@@ -101,12 +101,13 @@ def _get_ref_internal(ref: str) -> tuple[str, RefValue]:
     symbolic: bool = bool(value) and value.startswith("ref:")
     if symbolic and value is not None:
         value = value.split(":", 1)[1].strip()
-        return _get_ref_internal(value)
+        if deref:
+            return _get_ref_internal(value, deref=True)
 
-    return ref, RefValue(symbolic=False, value=value)
+    return ref, RefValue(symbolic=symbolic, value=value)
 
 
-def iter_refs():
+def iter_refs(deref: bool = True):
     refs: list[str] = ["HEAD"]
 
     for root, _, filenames in os.walk(os.path.join(GIT_DIR, "refs")):
@@ -114,4 +115,4 @@ def iter_refs():
         refs.extend(os.path.join(rel_path, filename) for filename in filenames)
 
     for ref_name in refs:
-        yield ref_name, get_ref(ref_name)
+        yield ref_name, get_ref(ref_name, deref=deref)

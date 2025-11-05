@@ -227,7 +227,7 @@ def get_oid(name: str) -> str:
     ]
 
     for ref in refs_to_try:
-        result: str | None = data.get_ref(ref).value
+        result: str | None = data.get_ref(ref, deref=False).value
         if result is not None:
             return result
 
