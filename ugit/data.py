@@ -78,10 +78,18 @@ def update_ref(ref: str, value: RefValue) -> None:
 
 def get_ref(ref: str) -> RefValue:
     """
-    Retreive the REF
+    Retreive the REF and whether its symbolic
 
     Args: None
-    Returns: None
+    Returns: RefValue
+    """
+    return _get_ref_internal(ref)[1]
+
+
+def _get_ref_internal(ref: str) -> tuple[str, RefValue]:
+    """
+    Internal function to dereference symbolic references
+    returns the final symbolic ref along with it's OID
     """
     ref_path: str = os.path.join(GIT_DIR, ref)
     value: str | None = None
@@ -89,9 +97,12 @@ def get_ref(ref: str) -> RefValue:
         with open(ref_path, "r") as f:
             value = f.read().strip()
 
-    if value and value.startswith("ref:"):
-        return get_ref(value.split(":", 1)[1].strip())
-    return RefValue(symbolic=False, value=value)
+    symbolic: bool = bool(value) and value.startswith("ref:")
+    if symbolic and value is not None:
+        value = value.split(":", 1)[1].strip()
+        return _get_ref_internal(value)
+
+    return ref, RefValue(symbolic=False, value=value)
 
 
 def iter_refs():
