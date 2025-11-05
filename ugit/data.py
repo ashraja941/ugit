@@ -69,6 +69,7 @@ def update_ref(ref: str, value: RefValue) -> None:
     """
     assert not value.symbolic
 
+    ref = _get_ref_internal(ref)[0]
     ref_location: str = os.path.join(GIT_DIR, ref)
     os.makedirs(os.path.dirname(ref_location), exist_ok=True)
     with open(ref_location, "w") as f:
