@@ -55,7 +55,7 @@ def parse_args():
 
     checkout_parser = commands.add_parser("checkout")
     checkout_parser.set_defaults(func=checkout)
-    _ = checkout_parser.add_argument("oid", type=oid)
+    _ = checkout_parser.add_argument("commit")
 
     tag_parser = commands.add_parser("tag")
     tag_parser.set_defaults(func=tag)
@@ -162,7 +162,7 @@ def checkout(args: argparse.Namespace) -> None:
     Returns: None
     """
 
-    base.checkout(args.oid)
+    base.checkout(args.commit)
 
 
 def tag(args: argparse.Namespace) -> None:

@@ -15,6 +15,17 @@ class Commit(NamedTuple):
     message: str
 
 
+def is_branch(branch: str) -> bool:
+    """
+    Helper function to find if a given string is a branch
+
+    Args: branch (str)
+    Returns: Bool
+    """
+    branch_location: str = os.path.join("refs", "heads", branch)
+    return data.get_ref(branch_location).value is not None
+
+
 def create_branch(name: str, oid: str) -> None:
     """
     Create a new branch
@@ -37,16 +48,23 @@ def create_tag(name: str, oid: str) -> None:
     data.update_ref(ref_location, data.RefValue(symbolic=False, value=oid))
 
 
-def checkout(oid: str) -> None:
+def checkout(name: str) -> None:
     """
     Switch repository state to state at COMMIT OID
 
     Args: OID (str)
     Returns: None
     """
+    oid: str = get_oid(name)
     commit = get_commit(oid)
     read_tree(commit.tree)
-    data.update_ref("HEAD", data.RefValue(symbolic=False, value=oid))
+    if is_branch(name):
+        ref_location: str = os.path.join("refs", "heads", name)
+        head = data.RefValue(symbolic=True, value=ref_location)
+    else:
+        head = data.RefValue(symbolic=False, value=oid)
+
+    data.update_ref("HEAD", head, deref=False)
 
 
 def commit(message: str) -> str:
