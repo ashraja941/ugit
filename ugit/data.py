@@ -21,6 +21,7 @@ def init() -> None:
     Creates the ugit directory if it doesn't exist
     """
     os.makedirs(GIT_DIR)
+    os.makedirs(f"{GIT_DIR}/objects")
 
 
 def hash_object(data: bytes, type_: str = "blob") -> str:
