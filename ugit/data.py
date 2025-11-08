@@ -67,14 +67,19 @@ def update_ref(ref: str, value: RefValue, deref: bool = True) -> None:
     Args: OID (str)
     Returns: None
     """
-    assert not value.symbolic
+    assert value.value is not None
+
+    if value.symbolic:
+        resultantValue: str = f"ref: {value.value}"
+    else:
+        resultantValue = value.value
 
     ref = _get_ref_internal(ref, deref)[0]
     ref_location: str = os.path.join(GIT_DIR, ref)
     os.makedirs(os.path.dirname(ref_location), exist_ok=True)
     with open(ref_location, "w") as f:
-        if value.value is not None:
-            _ = f.write(value.value)
+        # if value.value is not None:
+        _ = f.write(resultantValue)
 
 
 def get_ref(ref: str, deref: bool = True) -> RefValue:
