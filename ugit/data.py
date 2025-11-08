@@ -119,6 +119,12 @@ def _get_ref_internal(ref: str, deref: bool) -> tuple[str, RefValue]:
 
 
 def iter_refs(deref: bool = True):
+    """
+    Internal function to Iterate through references directory
+
+    Args: deref (bool)
+    Returns: None
+    """
     refs: list[str] = ["HEAD"]
 
     for root, _, filenames in os.walk(os.path.join(GIT_DIR, "refs")):

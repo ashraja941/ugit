@@ -253,8 +253,16 @@ def is_ignored(path: str) -> bool:
     return ".ugit" in path.split(" ")
 
 
-def iter_commits_and_parents(oids_list: set[str]):
-    oids = deque(oids_list)
+def iter_commits_and_parents(oids_set: set[str]):
+    """
+    Iterate through the set of OIDs using a queue.
+    Add the parents of the commit
+
+    Args: OIDS_set (set)
+    Yields: oid (str) <Generator>
+    """
+
+    oids = deque(oids_set)
     visited: set[str] = set()
     while oids:
         oid = oids.popleft()

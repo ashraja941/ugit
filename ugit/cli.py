@@ -182,6 +182,9 @@ def branch(args: argparse.Namespace) -> None:
 
 
 def k(args: argparse.Namespace) -> None:
+    """
+    Print the commmit history graph
+    """
     dot = "digraph commits {\n"
     oids: set[str] = set()
     for ref_name, ref_oid in data.iter_refs(deref=False):
