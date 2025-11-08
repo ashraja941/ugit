@@ -7,6 +7,11 @@ GIT_DIR = ".ugit"
 
 
 class RefValue(NamedTuple):
+    """
+    Type to represent the return value from references
+    Contains Symbolic status and value
+    """
+
     symbolic: bool
     value: str | None
 
