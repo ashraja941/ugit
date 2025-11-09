@@ -21,6 +21,28 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
+def get_branch() -> str | None:
+    """
+    Get the current branch
+    Make sure that that head points to a valid branch
+
+    Args: None
+    Returns: Branch name (str) or None (HEAD doesn't point to branch)
+    """
+
+    head = data.get_ref("HEAD", deref=False)
+    if not head.symbolic:
+        return None
+
+    head_ref_location = os.path.join("refs", "heads")
+    head_ref = head.value
+
+    assert head_ref is not None
+    assert head_ref.startswith(head_ref_location)
+
+    return os.path.relpath(head_ref, head_ref_location)
+
+
 def is_branch(branch: str) -> bool:
     """
     Helper function to find if a given string is a branch

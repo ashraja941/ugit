@@ -70,6 +70,9 @@ def parse_args():
     _ = branch_parser.add_argument("name")
     _ = branch_parser.add_argument("starting_point", default="@", type=oid, nargs="?")
 
+    status_parser = commands.add_parser("status")
+    status_parser.set_defaults(func=status)
+
     return parser.parse_args()
 
 
@@ -178,7 +181,7 @@ def tag(args: argparse.Namespace) -> None:
 
 def branch(args: argparse.Namespace) -> None:
     base.create_branch(args.name, args.starting_point)
-    print(f"Branch {args.name} created at {args.start_point[:10]}...")
+    print(f"Branch {args.name} created at {args.starting_point[:10]}...")
 
 
 def k(args: argparse.Namespace) -> None:
@@ -218,3 +221,14 @@ def k(args: argparse.Namespace) -> None:
     with open(out_file, "wb") as f:
         _ = f.write(out)
     # print(out.decode())
+
+
+def status(args: argparse.Namespace) -> None:
+    _ = args
+    head = base.get_oid("@")
+    branch = base.get_branch()
+
+    if branch:
+        print(f"On branch {branch}")
+    else:
+        print(f"HEAD Detached at {head[10:]}")
