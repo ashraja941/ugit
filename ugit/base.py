@@ -21,7 +21,13 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
-def get_branch() -> str | None:
+def iter_branch_names():
+    branches_locations: str = os.path.join("refs", "heads")
+    for ref_name, _ in data.iter_refs(prefix=branches_locations):
+        yield os.path.relpath(ref_name, branches_locations)
+
+
+def get_branch_name() -> str | None:
     """
     Get the current branch
     Make sure that that head points to a valid branch
@@ -281,7 +287,6 @@ def get_oid(name: str) -> str:
     if len(name) == 40 and is_hex:
         return name
 
-    print("already oid")
     assert False, f"Unknown name {name}"
 
 

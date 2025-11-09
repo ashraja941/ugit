@@ -118,7 +118,7 @@ def _get_ref_internal(ref: str, deref: bool) -> tuple[str, RefValue]:
     return ref, RefValue(symbolic=symbolic, value=value)
 
 
-def iter_refs(deref: bool = True):
+def iter_refs(prefix: str = "", deref: bool = True):
     """
     Internal function to Iterate through references directory
 
@@ -132,4 +132,6 @@ def iter_refs(deref: bool = True):
         refs.extend(os.path.join(rel_path, filename) for filename in filenames)
 
     for ref_name in refs:
+        if not ref_name.startswith(prefix):
+            continue
         yield ref_name, get_ref(ref_name, deref=deref)
