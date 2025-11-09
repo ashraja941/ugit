@@ -81,7 +81,7 @@ def init(args: argparse.Namespace) -> None:
     Returns: None
     """
     _ = args
-    data.init()
+    base.init()
     print(f"Initialized empty ugit repository in {os.getcwd()}/{data.GIT_DIR}")
 
 

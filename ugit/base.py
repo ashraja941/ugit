@@ -15,6 +15,12 @@ class Commit(NamedTuple):
     message: str
 
 
+def init() -> None:
+    data.init()
+    master_location = os.path.join("refs", "heads", "master")
+    data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
+
+
 def is_branch(branch: str) -> bool:
     """
     Helper function to find if a given string is a branch
