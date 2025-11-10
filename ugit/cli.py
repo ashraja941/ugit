@@ -4,6 +4,8 @@ import os
 import sys
 import textwrap
 
+from collections import defaultdict
+
 from . import data
 from . import base
 
@@ -148,11 +150,19 @@ def log(args: argparse.Namespace) -> None:
     Args: Object ID
     Returns: None
     """
+    refs: defaultdict[str, list[str]] = defaultdict(list)
+
+    for ref_name, ref_value in data.iter_refs():
+        assert ref_value.value is not None
+        refs[ref_value.value].append(ref_name)
+
     oids = args.oid or data.get_ref("HEAD")
+    print(oids)
     for oid in base.iter_commits_and_parents({oids}):
         commit = base.get_commit(oid)
 
-        print(f"commit {oid}\n")
+        refs_str = f" ({', '.join(refs[oid])})" if oid in refs else ""
+        print(f"commit {oid} {refs_str}\n")
         print(textwrap.indent(commit.message, "     "))
         print("")
 
