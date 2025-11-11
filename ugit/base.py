@@ -21,6 +21,10 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
+def reset(oid: str) -> None:
+    data.update_ref("HEAD", data.RefValue(symbolic=False, value=oid))
+
+
 def iter_branch_names():
     branches_locations: str = os.path.join("refs", "heads")
     for ref_name, _ in data.iter_refs(prefix=branches_locations):

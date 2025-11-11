@@ -75,6 +75,9 @@ def parse_args():
     status_parser = commands.add_parser("status")
     status_parser.set_defaults(func=status)
 
+    reset_parser = commands.add_parser("reset")
+    reset_parser.set_defaults(func=reset)
+    _ = reset_parser.add_argument("commit", type=oid)
     return parser.parse_args()
 
 
@@ -251,3 +254,7 @@ def status(args: argparse.Namespace) -> None:
         print(f"On branch {branch}")
     else:
         print(f"HEAD Detached at {head[10:]}")
+
+
+def reset(args: argparse.Namespace) -> None:
+    base.reset(args.commit)
