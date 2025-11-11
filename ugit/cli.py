@@ -156,9 +156,11 @@ def log(args: argparse.Namespace) -> None:
         assert ref_value.value is not None
         refs[ref_value.value].append(ref_name)
 
-    oids = args.oid or data.get_ref("HEAD")
-    print(oids)
-    for oid in base.iter_commits_and_parents({oids}):
+    oids = args.oid
+    oids = data.get_ref(oids)
+    assert oids.value is not None
+
+    for oid in base.iter_commits_and_parents({oids.value}):
         commit = base.get_commit(oid)
 
         refs_str = f" ({', '.join(refs[oid])})" if oid in refs else ""
