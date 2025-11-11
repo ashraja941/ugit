@@ -55,6 +55,10 @@ def parse_args():
     log_parser.set_defaults(func=log)
     _ = log_parser.add_argument("oid", default="@", type=oid, nargs="?")
 
+    show_parser = commands.add_parser("show")
+    show_parser.set_defaults(func=show)
+    _ = show_parser.add_argument("oid", default="@", type=oid, nargs="?")
+
     checkout_parser = commands.add_parser("checkout")
     checkout_parser.set_defaults(func=checkout)
     _ = checkout_parser.add_argument("commit")
@@ -146,6 +150,18 @@ def commit(args: argparse.Namespace) -> None:
     base.commit(args.message)
 
 
+def show(args: argparse.Namespace) -> None:
+    if not args.oid:
+        return
+
+    oid_ref = data.get_ref(args.oid)
+    oid = oid_ref.value
+    assert oid is not None
+
+    commit = base.get_commit(oid)
+    _print_commit(oid, commit)
+
+
 def log(args: argparse.Namespace) -> None:
     """
     Pass in Object ID and get commit history
@@ -165,11 +181,14 @@ def log(args: argparse.Namespace) -> None:
 
     for oid in base.iter_commits_and_parents({oids.value}):
         commit = base.get_commit(oid)
+        _print_commit(oid, commit, refs.get(oid))
 
-        refs_str = f" ({', '.join(refs[oid])})" if oid in refs else ""
-        print(f"commit {oid} {refs_str}\n")
-        print(textwrap.indent(commit.message, "     "))
-        print("")
+
+def _print_commit(oid: str, commit: base.Commit, refs: list[str] | None = None):
+    refs_str = f" ({', '.join(refs)})" if refs else ""
+    print(f"commit {oid} {refs_str}\n")
+    print(textwrap.indent(commit.message, "     "))
+    print("")
 
 
 def checkout(args: argparse.Namespace) -> None:
