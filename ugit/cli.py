@@ -8,6 +8,7 @@ from collections import defaultdict
 
 from . import data
 from . import base
+from . import diff
 
 
 def main() -> None:
@@ -159,7 +160,17 @@ def show(args: argparse.Namespace) -> None:
     assert oid is not None
 
     commit = base.get_commit(oid)
+    parent_tree = None
+    if commit.parent:
+        parent_tree = base.get_commit(commit.parent).tree
+
     _print_commit(oid, commit)
+
+    if parent_tree is not None:
+        results = diff.diff_trees(
+            base.get_tree(parent_tree), base.get_tree(commit.tree)
+        )
+        print(results)
 
 
 def log(args: argparse.Namespace) -> None:
