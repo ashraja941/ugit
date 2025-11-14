@@ -21,6 +21,10 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
+def merge(other: str):
+    raise NotImplementedError
+
+
 def get_working_tree() -> dict[str, str]:
     result: dict[str, str] = dict()
 
