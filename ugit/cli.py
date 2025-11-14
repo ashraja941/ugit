@@ -60,6 +60,10 @@ def parse_args():
     show_parser.set_defaults(func=show)
     _ = show_parser.add_argument("oid", default="@", type=oid, nargs="?")
 
+    diff_parser = commands.add_parser("diff")
+    diff_parser.set_defaults(func=_diff)
+    _ = diff_parser.add_argument("commit", default="@", type=oid, nargs="?")
+
     checkout_parser = commands.add_parser("checkout")
     checkout_parser.set_defaults(func=checkout)
     _ = checkout_parser.add_argument("commit")
@@ -83,6 +87,7 @@ def parse_args():
     reset_parser = commands.add_parser("reset")
     reset_parser.set_defaults(func=reset)
     _ = reset_parser.add_argument("commit", type=oid)
+
     return parser.parse_args()
 
 
@@ -288,3 +293,14 @@ def status(args: argparse.Namespace) -> None:
 
 def reset(args: argparse.Namespace) -> None:
     base.reset(args.commit)
+
+
+def _diff(args: argparse.Namespace) -> None:
+    commit_oid = data.get_ref(args.commit).value
+    assert commit_oid is not None
+
+    tree = args.commit and base.get_commit(commit_oid).tree
+
+    result = diff.diff_trees(base.get_tree(tree), base.get_working_tree())
+    _ = sys.stdout.flush()
+    _ = sys.stdout.buffer.write(result.encode())

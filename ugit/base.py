@@ -21,6 +21,20 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
+def get_working_tree() -> dict[str, str]:
+    result: dict[str, str] = dict()
+
+    for root, _, filenames in os.walk("."):
+        for filename in filenames:
+            relative_path = os.path.join(root, filename)
+            path = os.path.relpath(relative_path)
+            if is_ignored(path) or not os.path.isfile(path):
+                continue
+            with open(path, "rb") as f:
+                result[path] = data.hash_object(f.read())
+    return result
+
+
 def reset(oid: str) -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=False, value=oid))
 
