@@ -2,6 +2,7 @@ import argparse
 import subprocess
 import os
 import sys
+from tarfile import HeaderError
 import textwrap
 
 from collections import defaultdict
@@ -289,6 +290,16 @@ def status(args: argparse.Namespace) -> None:
         print(f"On branch {branch}")
     else:
         print(f"HEAD Detached at {head[10:]}")
+
+    print("\nChanges to be commited: \n")
+    head = data.get_ref(head).value
+    HEAD_tree = head and base.get_commit(head).tree
+    assert HEAD_tree is not None
+
+    for path, action in diff.iter_changed_files(
+        base.get_tree(HEAD_tree), base.get_working_tree()
+    ):
+        print(f"{action:>12}: {path}")
 
 
 def reset(args: argparse.Namespace) -> None:

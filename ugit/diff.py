@@ -48,3 +48,12 @@ def diff_blobs(t_from: str, t_to: str) -> str:
         lines1, lines2, fromfile="Previous", tofile="New", lineterm=""
     )
     return "\n".join(diff)
+
+
+def iter_changed_files(t_from, t_to):
+    for path, o_from, o_to in compare_trees(t_from, t_to):
+        if o_from != o_to:
+            action = (
+                "New File " if not o_from else "Deleted " if not o_to else "modified"
+            )
+            yield path, action
