@@ -90,16 +90,25 @@ def diff_DHEAD(head_text: str, other_text: str, macro="HEAD"):
 def merge_trees(t_head, t_other):
     tree = {}
     for path, o_head, o_other in compare_trees(t_head, t_other):
-        tree[path] = merge_blobs(o_head, o_other)
+        blob = merge_blobs(o_head, o_other)
+        if blob is None:
+            continue
+        tree[path] = blob
     return tree
 
 
 def merge_blobs(o_head: str | None, o_other: str | None):
-    a, b = None, None
-    if o_head is not None:
-        a = data.get_object(o_head).decode()
-    if o_other is not None:
-        b = data.get_object(o_other).decode()
+    if o_head is None and o_other is None:
+        return None
+
+    if o_head is None:
+        return data.get_object(o_other) if o_other is not None else None
+
+    if o_other is None:
+        return data.get_object(o_head)
+
+    a = data.get_object(o_head).decode()
+    b = data.get_object(o_other).decode()
 
     result = diff_DHEAD(a, b)
     return result.encode()
