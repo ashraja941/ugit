@@ -57,3 +57,49 @@ def iter_changed_files(t_from, t_to):
                 "New File " if not o_from else "Deleted " if not o_to else "modified"
             )
             yield path, action
+
+
+def diff_DHEAD(head_text: str, other_text: str, macro="HEAD"):
+    head_lines = head_text.splitlines(keepends=True)
+    other_lines = other_text.splitlines(keepends=True)
+
+    sm = difflib.SequenceMatcher(None, head_lines, other_lines)
+    output = []
+
+    for op, i1, i2, j1, j2 in sm.get_opcodes():
+        if op == "equal":
+            output.extend(head_lines[i1:i2])
+        elif op == "replace":
+            # output.append(f"#ifdef {macro}\n")
+            output.extend(head_lines[i1:i2])
+            # output.append("#else\n")
+            output.extend(other_lines[j1:j2])
+            # output.append("#endif\n")
+        elif op == "delete":
+            # output.append(f"#ifdef {macro}\n")
+            output.extend(head_lines[i1:i2])
+            # output.append("#endif\n")
+        elif op == "insert":
+            # output.append("#else\n")
+            output.extend(other_lines[j1:j2])
+            # output.append("#endif\n")
+
+    return "".join(output)
+
+
+def merge_trees(t_head, t_other):
+    tree = {}
+    for path, o_head, o_other in compare_trees(t_head, t_other):
+        tree[path] = merge_blobs(o_head, o_other)
+    return tree
+
+
+def merge_blobs(o_head: str | None, o_other: str | None):
+    a, b = None, None
+    if o_head is not None:
+        a = data.get_object(o_head).decode()
+    if o_other is not None:
+        b = data.get_object(o_other).decode()
+
+    result = diff_DHEAD(a, b)
+    return result.encode()

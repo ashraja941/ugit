@@ -7,6 +7,7 @@ from typing import NamedTuple
 from collections import deque
 
 from . import data
+from . import diff
 
 
 class Commit(NamedTuple):
@@ -21,8 +22,23 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
+def read_tree_merged(t_head, t_other):
+    _empty_current_directory()
+    for path, blob in diff.merge_trees(get_tree(t_head), get_tree(t_other)).items():
+        final_path = os.path.join(".", os.path.dirname(path))
+        os.makedirs(final_path, exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(blob)
+
+
 def merge(other: str):
-    raise NotImplementedError
+    HEAD = data.get_ref("HEAD").value
+    assert HEAD
+    c_HEAD = get_commit(HEAD)
+    c_other = get_commit(other)
+
+    read_tree_merged(c_HEAD.tree, c_other.tree)
+    print("Merged in working tree")
 
 
 def get_working_tree() -> dict[str, str]:
