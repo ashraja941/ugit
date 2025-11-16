@@ -12,7 +12,7 @@ from . import diff
 
 class Commit(NamedTuple):
     tree: str
-    parent: str | None
+    parents: list[str]
     message: str
 
 
@@ -280,7 +280,7 @@ def get_commit(oid: str):
     Args: Commit OID (str)
     Returns: Commit(Tree (str), parent (str), message (str))
     """
-    parent: str | None = None
+    parent: list[str] = []
 
     tree: str = ""
 
@@ -291,12 +291,12 @@ def get_commit(oid: str):
         if key == "tree":
             tree = value
         elif key == "parent":
-            parent = value
+            parent.append(value)
         else:
             assert False, f"Unknown field {key}"
 
     message = "\n".join(lines)
-    return Commit(tree=tree, parent=parent, message=message)
+    return Commit(tree=tree, parents=parent, message=message)
 
 
 def get_oid(name: str) -> str:
@@ -361,5 +361,6 @@ def iter_commits_and_parents(oids_set: set[str]):
         yield oid
 
         parent = get_commit(oid)
-        if parent.parent:
-            oids.appendleft(parent.parent)
+
+        oids.extendleft(parent.parents[:1])
+        oids.extend(parent.parents[1:])
