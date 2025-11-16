@@ -98,6 +98,12 @@ def get_ref(ref: str, deref: bool = True) -> RefValue:
     return _get_ref_internal(ref, deref=deref)[1]
 
 
+def delete_ref(ref: str, deref: bool = True):
+    ref = _get_ref_internal(ref, deref)[0]
+    path_to_remove = os.path.join(GIT_DIR, ref)
+    os.remove(path_to_remove)
+
+
 def _get_ref_internal(ref: str, deref: bool) -> tuple[str, RefValue]:
     """
     Internal function to dereference symbolic references
