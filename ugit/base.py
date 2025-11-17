@@ -12,18 +12,28 @@ from . import diff
 
 
 class Commit(NamedTuple):
+    """
+    Light-weight structure describing a commit object and its metadata.
+    """
+
     tree: str
     parents: list[str]
     message: str
 
 
 def init() -> None:
+    """
+    Initialize a new ugit repository and create the default HEAD ref.
+    """
     data.init()
     master_location = os.path.join("refs", "heads", "master")
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
 def read_tree_merged(t_base, t_head, t_other):
+    """
+    Write the result of a three-way tree merge into the working directory.
+    """
     _empty_current_directory()
     for path, blob in diff.merge_trees(
         get_tree(t_base), get_tree(t_head), get_tree(t_other)
@@ -35,6 +45,9 @@ def read_tree_merged(t_base, t_head, t_other):
 
 
 def get_merge_base(oid1: str, oid2: str):
+    """
+    Find the common ancestor shared by the two commit OIDs.
+    """
     parents1 = iter_commits_and_parents({oid1})
 
     for oid in iter_commits_and_parents({oid2}):
@@ -43,6 +56,9 @@ def get_merge_base(oid1: str, oid2: str):
 
 
 def merge(other: str):
+    """
+    Perform a merge between HEAD and the provided commit OID.
+    """
     HEAD = data.get_ref("HEAD").value
     assert HEAD
     merge_base = get_merge_base(other, HEAD)
@@ -64,6 +80,9 @@ def merge(other: str):
 
 
 def get_working_tree() -> dict[str, str]:
+    """
+    Walk the working directory and return blob IDs for every tracked file.
+    """
     result: dict[str, str] = dict()
 
     for root, _, filenames in os.walk("."):
@@ -78,10 +97,16 @@ def get_working_tree() -> dict[str, str]:
 
 
 def reset(oid: str) -> None:
+    """
+    Update HEAD to point directly at the provided commit OID.
+    """
     data.update_ref("HEAD", data.RefValue(symbolic=False, value=oid))
 
 
 def iter_branch_names():
+    """
+    Yield the names of every branch stored under refs/heads.
+    """
     branches_locations: str = os.path.join("refs", "heads")
     for ref_name, _ in data.iter_refs(prefix=branches_locations):
         yield os.path.relpath(ref_name, branches_locations)

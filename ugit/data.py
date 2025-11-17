@@ -20,6 +20,9 @@ class RefValue(NamedTuple):
 
 @contextmanager
 def change_git_dir(new_dir: str):
+    """
+    Temporarily point GIT_DIR at the given directory while executing a block.
+    """
     global GIT_DIR
     old_dir = GIT_DIR
     GIT_DIR = os.path.join(new_dir, ".ugit")
@@ -110,6 +113,9 @@ def get_ref(ref: str, deref: bool = True) -> RefValue:
 
 
 def delete_ref(ref: str, deref: bool = True):
+    """
+    Remove the specified ref file.
+    """
     ref = _get_ref_internal(ref, deref)[0]
     path_to_remove = os.path.join(GIT_DIR, ref)
     os.remove(path_to_remove)

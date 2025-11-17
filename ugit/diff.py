@@ -52,6 +52,9 @@ def diff_blobs(t_from: str, t_to: str) -> str:
 
 
 def iter_changed_files(t_from, t_to):
+    """
+    Yield the files that differ between the two trees with a descriptive action.
+    """
     for path, o_from, o_to in compare_trees(t_from, t_to):
         if o_from != o_to:
             action = (
@@ -61,6 +64,9 @@ def iter_changed_files(t_from, t_to):
 
 
 def diff_DHEAD(head_text: str, other_text: str, macro="HEAD"):
+    """
+    Interleave two text versions, keeping HEAD sections unless they differ.
+    """
     head_lines = head_text.splitlines(keepends=True)
     other_lines = other_text.splitlines(keepends=True)
 
@@ -90,6 +96,10 @@ def diff_DHEAD(head_text: str, other_text: str, macro="HEAD"):
 
 @dataclass
 class _Change:
+    """
+    Small helper structure representing a single contiguous edit block.
+    """
+
     start: int
     end: int
     text: list[str]
@@ -134,7 +144,7 @@ def diff3_merge(
         cursor = start
         for change in changes:
             if cursor < change.start:
-                out.extend(fallback[cursor:change.start])
+                out.extend(fallback[cursor : change.start])
                 cursor = change.start
             out.extend(change.text)
             cursor = change.end
@@ -155,9 +165,7 @@ def diff3_merge(
 
     while pos < base_len or i_h < len(head_changes) or i_o < len(other_changes):
         next_head = head_changes[i_h].start if i_h < len(head_changes) else base_len
-        next_other = (
-            other_changes[i_o].start if i_o < len(other_changes) else base_len
-        )
+        next_other = other_changes[i_o].start if i_o < len(other_changes) else base_len
         next_event = min(next_head, next_other, base_len)
 
         if pos < next_event:
@@ -196,9 +204,7 @@ def diff3_merge(
 
         if region_head and region_other:
             head_version = materialize(region_head, conflict_start, region_end, base)
-            other_version = materialize(
-                region_other, conflict_start, region_end, base
-            )
+            other_version = materialize(region_other, conflict_start, region_end, base)
             base_chunk = base[conflict_start:region_end]
 
             if head_version == other_version:
@@ -227,6 +233,9 @@ def diff3_merge(
 
 
 def merge_trees(t_base, t_head, t_other):
+    """
+    Run a three-way merge across tree dictionaries and return the merged tree.
+    """
     tree = {}
     for path, o_base, o_head, o_other in compare_trees(t_base, t_head, t_other):
         blob = merge_blobs(o_base, o_head, o_other)
@@ -237,6 +246,9 @@ def merge_trees(t_base, t_head, t_other):
 
 
 def merge_blobs(o_base: str | None, o_head: str | None, o_other: str | None):
+    """
+    Merge three blob IDs and return conflict-marked content if needed.
+    """
     if o_head is None and o_other is None and o_base is None:
         return None
 

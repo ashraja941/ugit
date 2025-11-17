@@ -168,6 +168,12 @@ def commit(args: argparse.Namespace) -> None:
 
 
 def show(args: argparse.Namespace) -> None:
+    """
+    Display a commit along with the diff against its first parent.
+
+    Args: argparse.Namespace containing the target commit.
+    Returns: None
+    """
     if not args.oid:
         return
 
@@ -212,6 +218,9 @@ def log(args: argparse.Namespace) -> None:
 
 
 def _print_commit(oid: str, commit: base.Commit, refs: list[str] | None = None):
+    """
+    Pretty-print a commit hash, associated refs and the commit message body.
+    """
     refs_str = f" ({', '.join(refs)})" if refs else ""
     print(f"commit {oid} {refs_str}\n")
     print(textwrap.indent(commit.message, "     "))
@@ -241,6 +250,9 @@ def tag(args: argparse.Namespace) -> None:
 
 
 def branch(args: argparse.Namespace) -> None:
+    """
+    List every branch or create a new branch from the supplied starting point.
+    """
     if not args.name:
         current = base.get_branch_name()
         for branch in base.iter_branch_names():
@@ -292,6 +304,9 @@ def k(args: argparse.Namespace) -> None:
 
 
 def status(args: argparse.Namespace) -> None:
+    """
+    Show branch/merge status and list the files staged for commit.
+    """
     _ = args
     head = base.get_oid("@")
     branch = base.get_branch_name()
@@ -317,10 +332,16 @@ def status(args: argparse.Namespace) -> None:
 
 
 def reset(args: argparse.Namespace) -> None:
+    """
+    Move HEAD to the provided commit without creating a new commit.
+    """
     base.reset(args.commit)
 
 
 def _diff(args: argparse.Namespace) -> None:
+    """
+    Compare the working tree to the specified commit (HEAD by default).
+    """
     commit_oid = data.get_ref(args.commit).value
     assert commit_oid is not None
 
@@ -332,8 +353,14 @@ def _diff(args: argparse.Namespace) -> None:
 
 
 def merge(args: argparse.Namespace) -> None:
+    """
+    Merge the provided commit into the current HEAD.
+    """
     base.merge(args.commit)
 
 
 def merge_base(args: argparse.Namespace) -> None:
+    """
+    Print the best common ancestor of the two supplied commits.
+    """
     print(base.get_merge_base(args.commit1, args.commit2))
