@@ -295,6 +295,10 @@ def status(args: argparse.Namespace) -> None:
     else:
         print(f"HEAD Detached at {head[10:]}")
 
+    MERGE_HEAD = data.get_ref("MERGE_HEAD").value
+    if MERGE_HEAD:
+        print(f"merging with {MERGE_HEAD[:10]}")
+
     print("\nChanges to be commited: \n")
     head = data.get_ref(head).value
     HEAD_tree = head and base.get_commit(head).tree
