@@ -1,3 +1,4 @@
+from inspect import getcomments
 import itertools
 import string
 import operator
@@ -22,24 +23,37 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
-def read_tree_merged(t_head, t_other):
+def read_tree_merged(t_base, t_head, t_other):
     _empty_current_directory()
-    for path, blob in diff.merge_trees(get_tree(t_head), get_tree(t_other)).items():
+    for path, blob in diff.merge_trees(
+        get_tree(t_base), get_tree(t_head), get_tree(t_other)
+    ).items():
         final_path = os.path.join(".", os.path.dirname(path))
         os.makedirs(final_path, exist_ok=True)
         with open(path, "wb") as f:
             f.write(blob)
 
 
+def get_merge_base(oid1: str, oid2: str):
+    parents1 = iter_commits_and_parents({oid1})
+
+    for oid in iter_commits_and_parents({oid2}):
+        if oid in parents1:
+            return oid
+
+
 def merge(other: str):
     HEAD = data.get_ref("HEAD").value
     assert HEAD
+    merge_base = get_merge_base(other, HEAD)
+    assert merge_base
+    c_base = get_commit(merge_base)
     c_HEAD = get_commit(HEAD)
     c_other = get_commit(other)
 
     data.update_ref("MERGE_HEAD", data.RefValue(symbolic=False, value=other))
 
-    read_tree_merged(c_HEAD.tree, c_other.tree)
+    read_tree_merged(c_base.tree, c_HEAD.tree, c_other.tree)
     print("Merged in working tree\nPlease commit")
 
 
