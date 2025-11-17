@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import dataclass
 import difflib
 from . import data
 
@@ -87,6 +88,13 @@ def diff_DHEAD(head_text: str, other_text: str, macro="HEAD"):
     return "".join(output)
 
 
+@dataclass
+class _Change:
+    start: int
+    end: int
+    text: list[str]
+
+
 def diff3_merge(
     base_text: str,
     head_text: str,
@@ -107,42 +115,113 @@ def diff3_merge(
     sm_head = difflib.SequenceMatcher(None, base, head)
     sm_other = difflib.SequenceMatcher(None, base, other)
 
-    output = []
-    i_h = i_o = 0
+    def collect_changes(sm: difflib.SequenceMatcher, seq: list[str]) -> list[_Change]:
+        changes: list[_Change] = []
+        for tag, i1, i2, j1, j2 in sm.get_opcodes():
+            if tag == "equal":
+                continue
+            changes.append(_Change(i1, i2, seq[j1:j2]))
+        return changes
 
-    while i_h < len(sm_head.get_opcodes()) and i_o < len(sm_other.get_opcodes()):
-        op_h, bh1, bh2, hh1, hh2 = sm_head.get_opcodes()[i_h]
-        op_o, bo1, bo2, oh1, oh2 = sm_other.get_opcodes()[i_o]
+    head_changes = collect_changes(sm_head, head)
+    other_changes = collect_changes(sm_other, other)
 
-        # If both HEAD and OTHER changed the same base region → conflict
-        if bh1 == bo1 and bh2 == bo2 and (op_h != "equal" or op_o != "equal"):
-            output.append(f"<<<<<<< {label_head}\n")
-            output.extend(head[hh1:hh2])
-            output.append(f"||||||| {label_base}\n")
-            output.extend(base[bh1:bh2])
-            output.append("=======\n")
-            output.extend(other[oh1:oh2])
-            output.append(f">>>>>>> {label_other}\n")
+    def materialize(
+        changes: list[_Change], start: int, end: int, fallback: list[str]
+    ) -> list[str]:
+        """Build the text for one side over base[start:end]."""
+        out: list[str] = []
+        cursor = start
+        for change in changes:
+            if cursor < change.start:
+                out.extend(fallback[cursor:change.start])
+                cursor = change.start
+            out.extend(change.text)
+            cursor = change.end
+        if cursor < end:
+            out.extend(fallback[cursor:end])
+        return out
+
+    def overlaps(change: _Change, region_end: int) -> bool:
+        if change.start < region_end:
+            return True
+        return change.start == region_end and change.start == change.end
+
+    output: list[str] = []
+    pos = 0
+    i_h = 0
+    i_o = 0
+    base_len = len(base)
+
+    while pos < base_len or i_h < len(head_changes) or i_o < len(other_changes):
+        next_head = head_changes[i_h].start if i_h < len(head_changes) else base_len
+        next_other = (
+            other_changes[i_o].start if i_o < len(other_changes) else base_len
+        )
+        next_event = min(next_head, next_other, base_len)
+
+        if pos < next_event:
+            output.extend(base[pos:next_event])
+            pos = next_event
+            continue
+
+        conflict_start = pos
+        region_end = pos
+        region_head: list[_Change] = []
+        region_other: list[_Change] = []
+
+        if i_h < len(head_changes) and head_changes[i_h].start == pos:
+            region_head.append(head_changes[i_h])
+            region_end = max(region_end, head_changes[i_h].end)
             i_h += 1
+
+        if i_o < len(other_changes) and other_changes[i_o].start == pos:
+            region_other.append(other_changes[i_o])
+            region_end = max(region_end, other_changes[i_o].end)
             i_o += 1
-            continue
 
-        # If only HEAD changed
-        if op_h != "equal":
-            output.extend(head[hh1:hh2])
-            i_h += 1
-            continue
+        expanded = True
+        while expanded:
+            expanded = False
+            if i_h < len(head_changes) and overlaps(head_changes[i_h], region_end):
+                region_head.append(head_changes[i_h])
+                region_end = max(region_end, head_changes[i_h].end)
+                i_h += 1
+                expanded = True
+            if i_o < len(other_changes) and overlaps(other_changes[i_o], region_end):
+                region_other.append(other_changes[i_o])
+                region_end = max(region_end, other_changes[i_o].end)
+                i_o += 1
+                expanded = True
 
-        # If only OTHER changed
-        if op_o != "equal":
-            output.extend(other[oh1:oh2])
-            i_o += 1
-            continue
+        if region_head and region_other:
+            head_version = materialize(region_head, conflict_start, region_end, base)
+            other_version = materialize(
+                region_other, conflict_start, region_end, base
+            )
+            base_chunk = base[conflict_start:region_end]
 
-        # If both equal → write base
-        output.extend(base[bh1:bh2])
-        i_h += 1
-        i_o += 1
+            if head_version == other_version:
+                output.extend(head_version)
+            else:
+                output.append(f"<<<<<<< {label_head}\n")
+                output.extend(head_version)
+                output.append(f"||||||| {label_base}\n")
+                output.extend(base_chunk)
+                output.append("=======\n")
+                output.extend(other_version)
+                output.append(f">>>>>>> {label_other}\n")
+        elif region_head:
+            output.extend(materialize(region_head, conflict_start, region_end, base))
+        elif region_other:
+            output.extend(materialize(region_other, conflict_start, region_end, base))
+        else:
+            if pos < base_len:
+                output.append(base[pos])
+                pos += 1
+                continue
+
+        pos = max(region_end, conflict_start)
 
     return "".join(output)
 
