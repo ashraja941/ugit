@@ -1,4 +1,5 @@
 from codecs import getreader
+from contextlib import contextmanager
 import os
 import hashlib
 from typing import NamedTuple
@@ -15,6 +16,15 @@ class RefValue(NamedTuple):
 
     symbolic: bool
     value: str | None
+
+
+@contextmanager
+def change_git_dir(new_dir: str):
+    global GIT_DIR
+    old_dir = GIT_DIR
+    GIT_DIR = os.path.join(new_dir, ".ugit")
+    yield
+    GIT_DIR = old_dir
 
 
 def init() -> None:

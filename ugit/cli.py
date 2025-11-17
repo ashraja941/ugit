@@ -16,8 +16,9 @@ def main() -> None:
     """
     This is the function that is called by the cli tool
     """
-    args = parse_args()
-    args.func(args)
+    with data.change_git_dir("."):
+        args = parse_args()
+        args.func(args)
 
 
 def parse_args():
