@@ -1,3 +1,4 @@
+from codecs import getreader
 import os
 import hashlib
 from typing import NamedTuple
@@ -131,7 +132,7 @@ def iter_refs(prefix: str = "", deref: bool = True):
     Args: deref (bool)
     Returns: None
     """
-    refs: list[str] = ["HEAD"]
+    refs: list[str] = ["HEAD", "MERGE_HEAD"]
 
     for root, _, filenames in os.walk(os.path.join(GIT_DIR, "refs")):
         rel_path = os.path.relpath(root, GIT_DIR)
@@ -140,4 +141,6 @@ def iter_refs(prefix: str = "", deref: bool = True):
     for ref_name in refs:
         if not ref_name.startswith(prefix):
             continue
-        yield ref_name, get_ref(ref_name, deref=deref)
+        ref = get_ref(ref_name, deref=deref)
+        if ref.value:
+            yield ref_name, ref
