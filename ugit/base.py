@@ -326,6 +326,28 @@ def _iter_tree_entries(oid: str):
         yield type_, oid_, name
 
 
+def iter_objects_in_commit(oids):
+    visited = set()
+
+    def iter_objects_in_tree(oid):
+        visited.add(oid)
+        yield oid
+
+        for type_, oid, _ in iter_objects_in_tree(oid):
+            if oid not in visited:
+                if type_ == "tree":
+                    yield from iter_objects_in_tree(oid)
+                else:
+                    visited.add(oid)
+                    yield oid
+
+    for oid in iter_commits_and_parents(oids):
+        yield oid
+        commit = get_commit(oid)
+        if commit.tree not in visited:
+            yield from iter_objects_in_tree(commit.tree)
+
+
 def get_commit(oid: str):
     """
     Reads through commit Information and returns tree hash, parent hash and message

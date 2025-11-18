@@ -1,4 +1,5 @@
 from . import data
+from . import base
 
 import os
 
@@ -9,6 +10,9 @@ LOCAL_REFS_BASE = os.path.join("refs", "remote")
 def fetch(remote_path: str):
     heads_path = os.path.join("refs", "heads")
     refs = _get_remote_refs(remote_path, REMOTE_REFS_BASE)
+
+    for oid in base.iter_objects_in_commit(refs.values()):
+        data.fetch_object_if_missing(oid, remote_path)
 
     for remote_name, value in refs.items():
         refname = os.path.relpath(remote_name, REMOTE_REFS_BASE)

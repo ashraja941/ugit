@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import os
 import hashlib
 from typing import NamedTuple
+import shutil
 
 
 git_dir = ".ugit"
@@ -160,3 +161,19 @@ def iter_refs(prefix: str = "", deref: bool = True):
         ref = get_ref(ref_name, deref=deref)
         if ref.value:
             yield ref_name, ref
+
+
+def object_exists(oid):
+    path = os.path.join(git_dir, "objects", oid)
+    return os.path.isfile(path)
+
+
+def fetch_object_if_missing(oid, remote_git_dir):
+    if object_exists(oid):
+        return
+
+    remote_git_dir = os.path.join(remote_git_dir, "ugit")
+    from_path = os.path.join(remote_git_dir, "objects", oid)
+    to_path = os.path.join(git_dir, "objects", oid)
+
+    shutil.copy(from_path, to_path)
