@@ -241,7 +241,7 @@ def merge_trees(t_base, t_head, t_other):
         blob = merge_blobs(o_base, o_head, o_other)
         if blob is None:
             continue
-        tree[path] = blob
+        tree[path] = data.hash_object(blob)
     return tree
 
 

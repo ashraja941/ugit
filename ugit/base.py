@@ -4,6 +4,7 @@ import string
 import operator
 import os
 from sys import stdout
+from turtle import up, update
 from typing import NamedTuple
 from collections import deque
 
@@ -30,18 +31,18 @@ def init() -> None:
     data.update_ref("HEAD", data.RefValue(symbolic=True, value=master_location))
 
 
-def read_tree_merged(t_base, t_head, t_other):
+def read_tree_merged(t_base, t_head, t_other, update_working: bool = False):
     """
     Write the result of a three-way tree merge into the working directory.
     """
-    _empty_current_directory()
-    for path, blob in diff.merge_trees(
-        get_tree(t_base), get_tree(t_head), get_tree(t_other)
-    ).items():
-        final_path = os.path.join(".", os.path.dirname(path))
-        os.makedirs(final_path, exist_ok=True)
-        with open(path, "wb") as f:
-            f.write(blob)
+    with data.get_index() as index:
+        index.clear()
+        index.update(
+            diff.merge_trees(get_tree(t_base), get_tree(t_head), get_tree(t_other))
+        )
+
+        if update_working:
+            _checkout_index(index)
 
 
 def get_merge_base(oid1: str, oid2: str):
@@ -66,7 +67,7 @@ def merge(other: str):
     c_other = get_commit(other)
 
     if merge_base == HEAD:
-        read_tree(c_other.tree)
+        read_tree(c_other.tree, True)
         data.update_ref("HEAD", data.RefValue(symbolic=False, value=other))
         print("Fast-forward merge, no need to commit")
         return
@@ -75,7 +76,7 @@ def merge(other: str):
 
     c_base = get_commit(merge_base)
     c_HEAD = get_commit(HEAD)
-    read_tree_merged(c_base.tree, c_HEAD.tree, c_other.tree)
+    read_tree_merged(c_base.tree, c_HEAD.tree, c_other.tree, True)
     print("Merged in working tree\nPlease commit")
 
 
@@ -176,7 +177,7 @@ def checkout(name: str) -> None:
     """
     oid: str = get_oid(name)
     commit = get_commit(oid)
-    read_tree(commit.tree)
+    read_tree(commit.tree, True)
     if is_branch(name):
         ref_location: str = os.path.join("refs", "heads", name)
         head = data.RefValue(symbolic=True, value=ref_location)
@@ -227,31 +228,38 @@ def write_tree(directory: str = ".") -> str:
     Args: directory = '.' (str)
     Returns: OID (str)
     """
-    entries: list[tuple[str, str, str]] = []
-    with os.scandir(directory) as it:
-        for entry in it:
-            full_file_location: str = os.path.join(directory, entry.name)
-            if is_ignored(full_file_location):
-                continue
+    index_as_tree = {}
+    with data.get_index() as index:
+        for path, oid in index.items():
+            path = os.path.split(path)
+            dir_path, filename = path[:-1], path[-1]
 
-            type_: str = ""
-            if entry.is_file(follow_symlinks=True):
-                type_ = "blob"
-                with open(full_file_location, "rb") as f:
-                    oid = data.hash_object(f.read(), type_)
+            current = index_as_tree
+            for dirname in dir_path:
+                current = current.setdefault(dirname, {})
+            current[filename] = oid
 
-            elif entry.is_dir(follow_symlinks=True):
+    def write_tree_recursive(tree_dict):
+        entries = []
+        for name, value in tree_dict.items():
+            if type(value) is dict:
                 type_ = "tree"
-                oid = write_tree(full_file_location)
+                oid = write_tree_recursive(value)
             else:
-                raise NotImplementedError
-            entries.append((entry.name, oid, type_))
+                type_ = "blob"
+                oid = value
 
-    tree = "".join(f"{type_} {oid} {name}\n" for name, oid, type_ in sorted(entries))
-    return data.hash_object(tree.encode(), "tree")
+            entries.append((name, oid, type_))
+
+        tree = "".join(
+            f"{type_} {oid} {name}\n" for name, oid, type_ in sorted(entries)
+        )
+        return data.hash_object(tree.encode(), "tree")
+
+    return write_tree_recursive(index_as_tree)
 
 
-def read_tree(tree_oid: str) -> None:
+def read_tree(tree_oid: str, update_working: bool = False) -> None:
     """
     Replace current directory with the files from a tree OID
     Empties current directory first and then puts every file back in it's position
@@ -259,11 +267,20 @@ def read_tree(tree_oid: str) -> None:
     Args: Tree OID (str)
     Returns: None
     """
+    with data.get_index() as index:
+        index.clear()
+        index.update(get_tree(tree_oid))
+
+        if update_working:
+            _checkout_index(index)
+
+
+def _checkout_index(index):
     _empty_current_directory()
-    for path, oid in get_tree(tree_oid, base_path="./").items():
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+    for path, oid in index.items():
+        os.makedirs(os.path.dirname(os.path.join("./", path)), exist_ok=True)
         with open(path, "wb") as f:
-            _ = f.write(data.get_object(oid))
+            _ = f.write(data.get_object(oid, "blob"))
 
 
 def get_tree(oid: str, base_path: str = "") -> dict[str, str]:
