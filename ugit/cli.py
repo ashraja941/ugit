@@ -104,6 +104,11 @@ def parse_args():
     fetch_parser.set_defaults(func=fetch)
     _ = fetch_parser.add_argument("remote")
 
+    push_parser = commands.add_parser("push")
+    push_parser.set_defaults(func=push)
+    _ = push_parser.add_argument("remote")
+    _ = push_parser.add_argument("branch")
+
     return parser.parse_args()
 
 
@@ -373,3 +378,8 @@ def merge_base(args: argparse.Namespace) -> None:
 
 def fetch(args: argparse.Namespace) -> None:
     remote.fetch(args.remote)
+
+
+def push(args: argparse.Namespace) -> None:
+    branch_path = os.path.join("refs", "heads", args.branch)
+    remote.push(args.remote, branch_path)
