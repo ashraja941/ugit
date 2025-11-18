@@ -65,7 +65,8 @@ def parse_args():
 
     diff_parser = commands.add_parser("diff")
     diff_parser.set_defaults(func=_diff)
-    _ = diff_parser.add_argument("commit", default="@", type=oid, nargs="?")
+    diff_parser.add_argument("--cached", action="store_true")
+    diff_parser.add_argument("commit", nargs="?")
 
     checkout_parser = commands.add_parser("checkout")
     checkout_parser.set_defaults(func=checkout)
@@ -362,12 +363,26 @@ def _diff(args: argparse.Namespace) -> None:
     """
     Compare the working tree to the specified commit (HEAD by default).
     """
+
     commit_oid = data.get_ref(args.commit).value
     assert commit_oid is not None
 
-    tree = args.commit and base.get_commit(commit_oid).tree
+    if args.commit:
+        tree = args.commit and base.get_commit(commit_oid).tree
+        tree_from = base.get_tree(tree)
 
-    result = diff.diff_trees(base.get_tree(tree), base.get_working_tree())
+    if args.cached:
+        tree_to = base.get_index_tree()
+        if not args.commit:
+            oid = base.get_oid("@")
+            tree = oid and base.get_commit(oid).tree
+            tree_from = base.get_tree(tree)
+    else:
+        tree_to = base.get_working_tree()
+        if not args.commit:
+            tree_from = base.get_index_tree()
+
+    result = diff.diff_trees(tree_from, tree_to)
     _ = sys.stdout.flush()
     _ = sys.stdout.buffer.write(result.encode())
 
