@@ -26,11 +26,14 @@ def _get_remote_refs(remote_path: str, prefix: str = ""):
 
 
 def push(remote_path: str, refname: str):
-    remote_ref = _get_remote_refs(remote_path)
+    remote_refs = _get_remote_refs(remote_path)
+    remote_ref = remote_refs.get(refname)
     local_ref = data.get_ref(refname).value
     assert local_ref
 
-    known_remote_refs = filter(data.object_exists, remote_ref.values())
+    assert not remote_ref or base.is_ancestor_of(local_ref, remote_ref)
+
+    known_remote_refs = filter(data.object_exists, remote_refs.values())
     remote_objects = set(base.iter_objects_in_commit(known_remote_refs))
     local_objects = set(base.iter_objects_in_commit({local_ref}))
     objects_to_push = local_objects - remote_objects

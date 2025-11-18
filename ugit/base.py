@@ -439,3 +439,7 @@ def iter_commits_and_parents(oids_set: set[str]):
 
         oids.extendleft(parent.parents[:1])
         oids.extend(parent.parents[1:])
+
+
+def is_ancestor_of(commit, maybe_ancestor):
+    return maybe_ancestor in iter_commits_and_parents({commit})
