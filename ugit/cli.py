@@ -10,6 +10,7 @@ from collections import defaultdict
 from . import data
 from . import base
 from . import diff
+from . import remote
 
 
 def main() -> None:
@@ -99,6 +100,10 @@ def parse_args():
     _ = merge_base_parser.add_argument("commit1", type=oid)
     _ = merge_base_parser.add_argument("commit2", type=oid)
 
+    fetch_parser = commands.add_parser("fetch")
+    fetch_parser.set_defaults(func=fetch)
+    _ = fetch_parser.add_argument("remote")
+
     return parser.parse_args()
 
 
@@ -111,7 +116,7 @@ def init(args: argparse.Namespace) -> None:
     """
     _ = args
     base.init()
-    print(f"Initialized empty ugit repository in {os.getcwd()}/{data.GIT_DIR}")
+    print(f"Initialized empty ugit repository in {os.getcwd()}/{data.git_dir}")
 
 
 def hash_object(args: argparse.Namespace) -> None:
@@ -364,3 +369,7 @@ def merge_base(args: argparse.Namespace) -> None:
     Print the best common ancestor of the two supplied commits.
     """
     print(base.get_merge_base(args.commit1, args.commit2))
+
+
+def fetch(args: argparse.Namespace) -> None:
+    remote.fetch(args.remote)

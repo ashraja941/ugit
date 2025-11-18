@@ -5,7 +5,7 @@ import hashlib
 from typing import NamedTuple
 
 
-GIT_DIR = ".ugit"
+git_dir = ".ugit"
 
 
 class RefValue(NamedTuple):
@@ -23,19 +23,19 @@ def change_git_dir(new_dir: str):
     """
     Temporarily point GIT_DIR at the given directory while executing a block.
     """
-    global GIT_DIR
-    old_dir = GIT_DIR
-    GIT_DIR = os.path.join(new_dir, ".ugit")
+    global git_dir
+    old_dir = git_dir
+    git_dir = os.path.join(new_dir, ".ugit")
     yield
-    GIT_DIR = old_dir
+    git_dir = old_dir
 
 
 def init() -> None:
     """
     Creates the ugit directory if it doesn't exist
     """
-    os.makedirs(GIT_DIR)
-    os.makedirs(f"{GIT_DIR}/objects")
+    os.makedirs(git_dir)
+    os.makedirs(f"{git_dir}/objects")
 
 
 def hash_object(data: bytes, type_: str = "blob") -> str:
@@ -50,7 +50,7 @@ def hash_object(data: bytes, type_: str = "blob") -> str:
     oid = hashlib.sha1(obj).hexdigest()
 
     # handle using correct slashes in all os
-    out_file_location: str = os.path.join(GIT_DIR, "objects", oid)
+    out_file_location: str = os.path.join(git_dir, "objects", oid)
 
     # Create a objects folder if it doesn't exist
     os.makedirs(os.path.dirname(out_file_location), exist_ok=True)
@@ -67,7 +67,7 @@ def get_object(object: str, expected: str | None = "blob") -> bytes:
     Args: OID (str), expected (str)
     Returns: Data (Bytes)
     """
-    object_location: str = os.path.join(GIT_DIR, "objects", object)
+    object_location: str = os.path.join(git_dir, "objects", object)
 
     with open(object_location, "rb") as f:
         obj = f.read()
@@ -95,7 +95,7 @@ def update_ref(ref: str, value: RefValue, deref: bool = True) -> None:
         resultantValue = value.value
 
     ref = _get_ref_internal(ref, deref)[0]
-    ref_location: str = os.path.join(GIT_DIR, ref)
+    ref_location: str = os.path.join(git_dir, ref)
     os.makedirs(os.path.dirname(ref_location), exist_ok=True)
     with open(ref_location, "w") as f:
         # if value.value is not None:
@@ -117,7 +117,7 @@ def delete_ref(ref: str, deref: bool = True):
     Remove the specified ref file.
     """
     ref = _get_ref_internal(ref, deref)[0]
-    path_to_remove = os.path.join(GIT_DIR, ref)
+    path_to_remove = os.path.join(git_dir, ref)
     os.remove(path_to_remove)
 
 
@@ -126,7 +126,7 @@ def _get_ref_internal(ref: str, deref: bool) -> tuple[str, RefValue]:
     Internal function to dereference symbolic references
     returns the final symbolic ref along with it's OID
     """
-    ref_path: str = os.path.join(GIT_DIR, ref)
+    ref_path: str = os.path.join(git_dir, ref)
     value: str | None = None
     if os.path.isfile(ref_path):
         with open(ref_path, "r") as f:
@@ -150,8 +150,8 @@ def iter_refs(prefix: str = "", deref: bool = True):
     """
     refs: list[str] = ["HEAD", "MERGE_HEAD"]
 
-    for root, _, filenames in os.walk(os.path.join(GIT_DIR, "refs")):
-        rel_path = os.path.relpath(root, GIT_DIR)
+    for root, _, filenames in os.walk(os.path.join(git_dir, "refs")):
+        rel_path = os.path.relpath(root, git_dir)
         refs.extend(os.path.join(rel_path, filename) for filename in filenames)
 
     for ref_name in refs:
