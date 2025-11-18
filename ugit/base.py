@@ -333,7 +333,7 @@ def iter_objects_in_commit(oids):
         visited.add(oid)
         yield oid
 
-        for type_, oid, _ in iter_objects_in_tree(oid):
+        for type_, oid, _ in _iter_tree_entries(oid):
             if oid not in visited:
                 if type_ == "tree":
                     yield from iter_objects_in_tree(oid)
