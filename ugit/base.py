@@ -443,3 +443,26 @@ def iter_commits_and_parents(oids_set: set[str]):
 
 def is_ancestor_of(commit, maybe_ancestor):
     return maybe_ancestor in iter_commits_and_parents({commit})
+
+
+def add(filenames):
+    def add_file(filename):
+        filename = os.path.relpath(filename)
+        with open(filename, "rb") as f:
+            oid = data.hash_object(f.read())
+        index[filename] = oid
+
+    def add_directory(dirname):
+        for root, _, filenames in os.walk(dirname):
+            for filename in filenames:
+                path = os.path.relpath(os.path.join(root, filename))
+                if is_ignored(path) or not os.path.isfile(path):
+                    continue
+                add_file(path)
+
+    with data.get_index() as index:
+        for name in filenames:
+            if os.path.isfile(name):
+                add_file(name)
+            elif os.path.isdir(name):
+                add_directory(name)

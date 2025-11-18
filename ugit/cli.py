@@ -109,6 +109,10 @@ def parse_args():
     _ = push_parser.add_argument("remote")
     _ = push_parser.add_argument("branch")
 
+    add_parser = commands.add_parser("add")
+    add_parser.set_defaults(func=add)
+    _ = add_parser.add_argument("files", nargs="+")
+
     return parser.parse_args()
 
 
@@ -383,3 +387,7 @@ def fetch(args: argparse.Namespace) -> None:
 def push(args: argparse.Namespace) -> None:
     branch_path = os.path.join("refs", "heads", args.branch)
     remote.push(args.remote, branch_path)
+
+
+def add(args: argparse.Namespace) -> None:
+    base.add(args.files)
