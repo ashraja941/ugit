@@ -483,3 +483,8 @@ def add(filenames):
                 add_file(name)
             elif os.path.isdir(name):
                 add_directory(name)
+
+
+def get_index_tree():
+    with data.get_index() as index:
+        return index
